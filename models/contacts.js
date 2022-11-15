@@ -35,9 +35,10 @@ const removeContact = async (contactId) => {
       contacts.splice(index, 1);
 
       await fs.writeFile(contactsPath, JSON.stringify(contacts), "utf-8");
+      return true;
     }
 
-    return index;
+    return false;
   } catch (error) {
     console.log(error.message);
   }
@@ -56,6 +57,7 @@ const addContact = async (body) => {
     console.log(error.message);
   }
 };
+
 const updateContact = async (contactId, body) => {
   try {
     const contacts = JSON.parse(await fs.readFile(contactsPath, "utf-8"));
@@ -63,7 +65,7 @@ const updateContact = async (contactId, body) => {
     const index = contacts.findIndex((contact) => contact.id === contactId);
 
     if (index === -1) {
-      return null;
+      return false;
     }
 
     contacts[index] = { ...contacts[index], ...body };

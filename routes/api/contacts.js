@@ -39,7 +39,6 @@ router.get("/:contactId", async (req, res, next) => {
 router.post("/", async (req, res, next) => {
   const schema = Joi.object({
     name: Joi.string().alphanum().min(2).max(30).required(),
-
     email: Joi.string()
       .email({
         minDomainSegments: 2,
@@ -47,7 +46,7 @@ router.post("/", async (req, res, next) => {
       .required(),
     phone: Joi.string()
       .min(7)
-      .pattern(/^[- ()0-9]+$/, "numbers, ' ', '-'")
+      .pattern(/^[- ()0-9]+$/, "numbers,' ','()-'")
       .required(),
   });
 
@@ -62,6 +61,7 @@ router.post("/", async (req, res, next) => {
         .status(400)
         .json({ message: `missing required ${path} field` });
     }
+
     const id = shortid.generate();
 
     body = { id, ...body };
@@ -78,7 +78,7 @@ router.delete("/:contactId", async (req, res, next) => {
   try {
     const result = await removeContact(req.params.contactId);
 
-    if (result !== -1) {
+    if (result) {
       return res.status(200).json({ message: "contact deleted" });
     }
 
@@ -91,7 +91,6 @@ router.delete("/:contactId", async (req, res, next) => {
 router.put("/:contactId", async (req, res, next) => {
   const schema = Joi.object({
     name: Joi.string().alphanum().min(2).max(30),
-
     email: Joi.string().email({
       minDomainSegments: 2,
     }),
@@ -110,9 +109,7 @@ router.put("/:contactId", async (req, res, next) => {
     const { error } = schema.validate(body);
 
     if (error) {
-      const [{ message }] = error.details;
-
-      console.log(message);
+      // const [{ message }] = error.details;
 
       return res.status(400).json({
         message: error.message.replaceAll('"', ""),
@@ -121,11 +118,11 @@ router.put("/:contactId", async (req, res, next) => {
 
     const result = await updateContact(req.params.contactId, body);
 
-    if (!result) {
-      return res.status(404).json({ message: "Not found" });
+    if (result) {
+      return res.status(200).json(result);
     }
 
-    res.status(200).json(result);
+    res.status(404).json({ message: "Not found" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
