@@ -1,6 +1,4 @@
 const express = require("express");
-const Joi = require("joi");
-
 const shortid = require("shortid");
 const router = express.Router();
 
@@ -12,22 +10,34 @@ const {
   updateContact,
 } = require("../../models/contacts");
 
-router.get("/", async (req, res, next) => {
-  try {
-    const contacts = await listContacts();
+const {
+  schemaNewContact,
+  schemaId,
+  schemaUpdateContact,
+} = require("../../service/validate");
 
-    res.status(200).json(contacts);
+router.get("/", async (_, res) => {
+  try {
+    const result = await listContacts();
+
+    res.status(200).json(result);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-router.get("/:contactId", async (req, res, next) => {
-  try {
-    const contactById = await getContactById(req.params.contactId);
+router.get("/:contactId", async (req, res) => {
+  const contactId = req.params.contactId;
 
-    if (contactById) {
-      return res.status(200).json(contactById);
+  try {
+    const { error } = schemaId.validate(contactId);
+
+    if (!error) {
+      const result = await getContactById(contactId);
+
+      if (result) {
+        return res.status(200).json(result);
+      }
     }
 
     res.status(404).json({ message: "Not found" });
@@ -36,23 +46,11 @@ router.get("/:contactId", async (req, res, next) => {
   }
 });
 
-router.post("/", async (req, res, next) => {
-  const schema = Joi.object({
-    name: Joi.string().alphanum().min(2).max(30).required(),
-    email: Joi.string()
-      .email({
-        minDomainSegments: 2,
-      })
-      .required(),
-    phone: Joi.string()
-      .min(7)
-      .pattern(/^[- ()0-9]+$/, "numbers,' ','()-'")
-      .required(),
-  });
-
+router.post("/", async (req, res) => {
   try {
-    let body = req.body;
-    const { error } = schema.validate(body);
+    const body = req.body;
+
+    const { error } = schemaNewContact.validate(body);
 
     if (error) {
       const [{ path }] = error.details;
@@ -64,22 +62,26 @@ router.post("/", async (req, res, next) => {
 
     const id = shortid.generate();
 
-    body = { id, ...body };
+    await addContact({ id, ...body });
 
-    await addContact(body);
-
-    res.status(201).json(body);
+    res.status(201).json({ id, ...body });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-router.delete("/:contactId", async (req, res, next) => {
-  try {
-    const result = await removeContact(req.params.contactId);
+router.delete("/:contactId", async (req, res) => {
+  const contactId = req.params.contactId;
 
-    if (result) {
-      return res.status(200).json({ message: "contact deleted" });
+  try {
+    const { error } = schemaId.validate(contactId);
+
+    if (!error) {
+      const result = await removeContact(contactId);
+
+      if (result) {
+        return res.status(200).json({ message: "contact deleted" });
+      }
     }
 
     res.status(404).json({ message: "Not found" });
@@ -88,38 +90,32 @@ router.delete("/:contactId", async (req, res, next) => {
   }
 });
 
-router.put("/:contactId", async (req, res, next) => {
-  const schema = Joi.object({
-    name: Joi.string().alphanum().min(2).max(30),
-    email: Joi.string().email({
-      minDomainSegments: 2,
-    }),
-    phone: Joi.string()
-      .min(7)
-      .pattern(/^[- ()0-9]+$/, "numbers, ' ', '-'"),
-  });
+router.put("/:contactId", async (req, res) => {
+  const contactId = req.params.contactId;
 
   try {
-    const body = req.body;
+    const { error } = schemaId.validate(contactId);
 
-    if (Object.keys(body).length === 0) {
-      return res.status(400).json({ message: "missing fields" });
-    }
+    if (!error) {
+      const body = req.body;
 
-    const { error } = schema.validate(body);
+      if (Object.keys(body).length === 0) {
+        return res.status(400).json({ message: "missing fields" });
+      }
 
-    if (error) {
-      // const [{ message }] = error.details;
+      const { error } = schemaUpdateContact.validate(body);
 
-      return res.status(400).json({
-        message: error.message.replaceAll('"', ""),
-      });
-    }
+      if (error) {
+        return res.status(400).json({
+          message: error.message.replaceAll('"', ""),
+        });
+      }
 
-    const result = await updateContact(req.params.contactId, body);
+      const result = await updateContact(contactId, body);
 
-    if (result) {
-      return res.status(200).json(result);
+      if (result) {
+        return res.status(200).json(result);
+      }
     }
 
     res.status(404).json({ message: "Not found" });
