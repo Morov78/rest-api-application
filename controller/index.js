@@ -41,11 +41,6 @@ const create = async (req, res, next) => {
   } catch (error) {
     const errorsKeys = Object.keys(error.errors);
 
-    if (errorsKeys.length === 1) {
-      return res
-        .status(400)
-        .json({ message: `missing required ${errorsKeys[0]} field` });
-    }
     res
       .status(400)
       .json({ message: `missing required fields: ${errorsKeys.join(", ")}` });
