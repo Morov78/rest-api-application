@@ -1,8 +1,12 @@
-const service = require("../service");
+const service = require("../../service/contact");
 
 const get = async (req, res, next) => {
   try {
-    const result = await service.listContacts();
+    const { favorite, page, limit } = req.query;
+
+    const userId = req.user._id;
+
+    const result = await service.listContacts(userId, favorite, page, limit);
 
     res.status(200).json(result);
   } catch (error) {
@@ -13,7 +17,9 @@ const get = async (req, res, next) => {
 
 const getById = async (req, res, next) => {
   try {
-    const result = await service.getById(req.params.id);
+    const userId = req.user._id;
+
+    const result = await service.getById(req.params.id, userId);
 
     if (result) {
       return res.status(200).json(result);
@@ -28,6 +34,7 @@ const getById = async (req, res, next) => {
 
 const create = async (req, res, next) => {
   const { name, email, phone, favorite } = req.body;
+  const owner = req.user._id;
 
   try {
     const result = await service.addContact({
@@ -35,6 +42,7 @@ const create = async (req, res, next) => {
       email,
       phone,
       favorite,
+      owner,
     });
 
     res.status(201).json(result);
@@ -48,8 +56,10 @@ const create = async (req, res, next) => {
 };
 
 const remove = async (req, res, next) => {
+  const userId = req.user._id;
+
   try {
-    const result = await service.removeContact(req.params.id);
+    const result = await service.removeContact(req.params.id, userId);
 
     if (result) {
       return res.status(200).json({ message: "contact deleted" });
@@ -68,9 +78,10 @@ const update = async (req, res, next) => {
   if (!name && !email && !phone) {
     return res.status(400).json({ message: "missing fields" });
   }
+  const userId = req.user._id;
 
   try {
-    const result = await service.updateContact(req.params.id, {
+    const result = await service.updateContact(req.params.id, userId, {
       name,
       email,
       phone,
@@ -92,15 +103,20 @@ const updateStatusContact = async (req, res, next) => {
     return res.status(400).json({ message: "missing field favorite" });
   }
 
+  const userId = req.user._id;
+
   try {
-    const result = await service.updateStatusContact(req.params.id, req.body);
+    const result = await service.updateStatusContact(
+      req.params.id,
+      userId,
+      req.body
+    );
 
     if (result) {
       return res.status(200).json(result);
     }
     res.status(404).json({ message: "Not found" });
   } catch (error) {
-    console.error(error);
     next(error);
   }
 };
