@@ -15,7 +15,6 @@ const auth = async (req, res, next) => {
         const user = await User.findOne({ _id: decoded.id });
 
         if (token === user.token) {
-          console.log("токени співпадають");
           req.user = user;
 
           return next();
