@@ -70,24 +70,12 @@ const updateStatusSubscription = async (req, res, next) => {
   const userId = req.user._id;
 
   try {
-    if (!subscription) {
-      return res.status(400).json({ message: "Missing field subscription" });
-    }
-
     const user = await service.updateStatusSubscription(userId, subscription);
 
-    return res
+    res
       .status(200)
       .json({ email: user.email, subscription: user.subscription });
   } catch (error) {
-    const nameError = error.errors?.subscription?.name || null;
-
-    if (nameError === "ValidatorError") {
-      return res
-        .status(400)
-        .json({ message: "Subscription can be starter, pro or business" });
-    }
-
     next(error);
   }
 };

@@ -2,6 +2,7 @@ const Contact = require("./schemas/contact");
 
 const listContacts = async (userId, favorite, page = 1, limit = 0) => {
   const paramSkip = (page - 1) * limit;
+
   if (favorite === "true" || favorite === "false") {
     // }
     return Contact.find({ owner: userId, favorite })
