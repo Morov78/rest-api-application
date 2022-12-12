@@ -4,7 +4,7 @@ const validateUser = async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
-    await User.validate({ email, password });
+    await User.validate({ email, password, avatarURL: 0 });
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
