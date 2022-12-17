@@ -1,11 +1,13 @@
 const path = require("path");
 const fs = require("fs/promises");
+
 const Jimp = require("jimp");
 
 const avatarDir = path.join(process.cwd(), "public", "avatars");
 
 const createToken = require("../../service/token/createToken");
 const service = require("../../service/user");
+const User = require("../../service/schemas/user");
 
 const registration = async (req, res, next) => {
   const { email, password } = req.body;
@@ -102,6 +104,7 @@ const updateAvatar = async (req, res, next) => {
     // await fs.rename(tempUpload, avatarUpload);
     Jimp.read(tempUpload, (error, workfile) => {
       if (error) {
+        console.log(error);
         throw error;
       }
 
@@ -120,6 +123,11 @@ const updateAvatar = async (req, res, next) => {
   }
 };
 
+const getAllUsers = async (req, res, next) => {
+  const result = await User.find();
+  res.status(200).json(result);
+};
+
 module.exports = {
   registration,
   login,
@@ -127,4 +135,6 @@ module.exports = {
   current,
   updateStatusSubscription,
   updateAvatar,
+
+  getAllUsers,
 };

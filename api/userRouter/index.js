@@ -4,6 +4,7 @@ const router = express.Router();
 const controller = require("../../controller/users");
 const auth = require("../../middlewares/auth");
 const upload = require("../../middlewares/upload");
+const uploadNode = require("../../middlewares/uploadNode");
 const {
   validateUser,
   ValidateSubscription,
@@ -30,5 +31,9 @@ router.patch(
   upload.single("avatar"),
   controller.updateAvatar
 );
+
+router.patch("/avatars_no_multer", auth, uploadNode, controller.updateAvatar);
+
+router.get("/", controller.getAllUsers);
 
 module.exports = router;
