@@ -1,3 +1,5 @@
+const gravatar = require("gravatar");
+
 const User = require("./schemas/user");
 
 const getUser = async (email) => {
@@ -5,15 +7,21 @@ const getUser = async (email) => {
 };
 
 const addUser = async (email, password) => {
-  const newUser = new User({ email });
+  const avatarURL = await gravatar.url(email);
 
+  const newUser = new User({ email, avatarURL });
+  console.log("test3");
   newUser.setPassword(password);
-
+  console.log("test4");
   return await newUser.save();
 };
 
 const updateToken = async (id, token = null) => {
-  return User.findByIdAndUpdate(id, { token }, { returnDocument: "after" });
+  return await User.findByIdAndUpdate(
+    id,
+    { token },
+    { returnDocument: "after" }
+  );
 };
 
 const updateStatusSubscription = async (id, subscription) => {
@@ -24,9 +32,14 @@ const updateStatusSubscription = async (id, subscription) => {
   );
 };
 
+const updateAvatarURL = async (id, avatarURL) => {
+  return await User.findByIdAndUpdate(id, { avatarURL });
+};
+
 module.exports = {
   getUser,
   addUser,
   updateToken,
   updateStatusSubscription,
+  updateAvatarURL,
 };

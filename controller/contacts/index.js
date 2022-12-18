@@ -32,7 +32,7 @@ const getById = async (req, res, next) => {
   }
 };
 
-const create = async (req, res, next) => {
+const create = async (req, res) => {
   const { name, email, phone, favorite } = req.body;
   const owner = req.user._id;
 

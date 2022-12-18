@@ -19,6 +19,7 @@ const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 app.use(express.json());
 app.use(cors());
 app.use(morgan(formatsLogger));
+app.use(express.static("public"));
 
 app.use("/api/users", userRouter);
 app.use("/api/contacts", contactRouter);
@@ -48,3 +49,5 @@ const start = async () => {
 };
 
 start();
+
+module.exports = { start };
