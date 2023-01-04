@@ -1,10 +1,27 @@
 const User = require("../service/schemas/user");
 
+const validateEmail = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    await User.validate({ email });
+  } catch (error) {
+    if (error.errors.email) {
+      res.status(400).json({ message: "missing required field email" });
+    }
+  }
+  next();
+};
 const validateUser = async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
-    await User.validate({ email, password, avatarURL: 0 });
+    await User.validate({
+      email,
+      password,
+      verificationToken: 0,
+      avatarURL: 0,
+    });
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
@@ -30,4 +47,4 @@ const ValidateSubscription = async (req, res, next) => {
   next();
 };
 
-module.exports = { validateUser, ValidateSubscription };
+module.exports = { validateUser, ValidateSubscription, validateEmail };

@@ -1,10 +1,15 @@
 const mongoose = require("mongoose");
 
-const connectionDb = async (uriDb) => {
+const {uriDb} = require("./db.config")
+
+mongoose.set('strictQuery',false)
+
+const connectionDb = async () => {
   await mongoose
     .connect(uriDb, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
+      dbName: "db-contacts"
     })
     .then(() => {
       console.log("Database connection successful");
