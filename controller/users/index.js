@@ -12,6 +12,7 @@ const User = require("../../service/schemas/user");
 const sendEmail = require("../../service/sendEmail");
 
 const registration = async (req, res, next) => {
+  
   const { email, password } = req.body;
 
   try {
@@ -157,7 +158,8 @@ const updateAvatar = async (req, res, next) => {
     const avatarName = `${id}.${extention}`;
     const avatarUpload = path.join(avatarDir, avatarName);
 
-    // await fs.rename(tempUpload, avatarUpload);
+    
+    
     Jimp.read(tempUpload, (error, workfile) => {
       if (error) {
         console.log(error);
