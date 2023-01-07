@@ -23,9 +23,10 @@ app.use(express.static("public"));
 
 app.use("/api/users", userRouter);
 app.use("/api/contacts", contactRouter);
+
 app.use((_, res) => {
   res.status(404).json({
-    message: "Use api on routes: /api/users/, /api/contacts/",
+    message: "Use api on routes: /api/contacts",
   });
 });
 
@@ -36,10 +37,11 @@ app.use((error, _, res) => {
   });
 });
 
-const PORT = process.env.NODE_DOCKER_PORT || 3000;
+const PORT = process.env.PORT || 3000;
+const uriDb = process.env.DB_HOST;
 
 const start = async () => {
-  await connectionDb();
+  await connectionDb(uriDb);
 
   app.listen(PORT, () => {
     console.log(`Server running on port: ${PORT}`);

@@ -8,14 +8,9 @@ const uploadNode = require("../../middlewares/uploadNode");
 const {
   validateUser,
   ValidateSubscription,
-  validateEmail,
 } = require("../../middlewares/validator");
 
 router.post("/register", validateUser, controller.registration);
-
-router.post("/verify", validateEmail, controller.resendEmail);
-
-router.get("/verify/:verificationToken", controller.verifyToken);
 
 router.post("/login", validateUser, controller.login);
 

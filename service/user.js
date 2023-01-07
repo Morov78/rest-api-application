@@ -6,13 +6,13 @@ const getUser = async (email) => {
   return await User.findOne({ email });
 };
 
-const addUser = async (email, password, verificationToken) => {
+const addUser = async (email, password) => {
   const avatarURL = await gravatar.url(email);
 
-  const newUser = new User({ email, avatarURL, verificationToken });
-
+  const newUser = new User({ email, avatarURL });
+  console.log("test3");
   newUser.setPassword(password);
-
+  console.log("test4");
   return await newUser.save();
 };
 
@@ -36,23 +36,10 @@ const updateAvatarURL = async (id, avatarURL) => {
   return await User.findByIdAndUpdate(id, { avatarURL });
 };
 
-const getUserByVerificationToken = async (verificationToken) => {
-  return await User.findOne({ verificationToken });
-};
-
-const updateStatusVerify = async (id) => {
-  return await User.findByIdAndUpdate(id, {
-    verify: true,
-    verificationToken: null,
-  });
-};
-
 module.exports = {
   getUser,
   addUser,
   updateToken,
   updateStatusSubscription,
   updateAvatarURL,
-  getUserByVerificationToken,
-  updateStatusVerify,
 };

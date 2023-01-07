@@ -1,7 +1,6 @@
 const path = require("path");
 const fs = require("fs/promises");
 
-const shortId = require("shortid");
 const Jimp = require("jimp");
 
 const avatarDir = path.join(process.cwd(), "public", "avatars");
@@ -9,10 +8,8 @@ const avatarDir = path.join(process.cwd(), "public", "avatars");
 const createToken = require("../../service/token/createToken");
 const service = require("../../service/user");
 const User = require("../../service/schemas/user");
-const sendEmail = require("../../service/sendEmail");
 
 const registration = async (req, res, next) => {
-  
   const { email, password } = req.body;
 
   try {
@@ -23,65 +20,15 @@ const registration = async (req, res, next) => {
         message: "Email in use",
       });
     }
+    console.log("test1");
+    const { subscription, avatarURL } = await service.addUser(email, password);
 
-    const verificationToken = shortId.generate();
-
-    const { subscription, avatarURL } = await service.addUser(
-      email,
-      password,
-      verificationToken
-    );
-
-    const mail = {
-      to: email,
-      subject: "Сonfirmation of registration",
-      html: `<a href="http://localhost:3000/api/users/verify/${verificationToken} target="_blank">Click to confirm registration</a>`,
-    };
-
-    sendEmail(mail);
+    console.log("test2");
 
     res.status(201).json({ user: { email, subscription, avatarURL } });
   } catch (error) {
     next(error);
   }
-};
-
-const verifyToken = async (req, res, next) => {
-  try {
-    const user = await service.getUserByVerificationToken(
-      req.params.verificationToken
-    );
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    await service.updateStatusVerify(user._id);
-
-    res.status(200).json({ message: "Verification successful" });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const resendEmail = async (req, res, next) => {
-  const { email } = req.body;
-
-  const user = service.getUser(email);
-
-  if (user.verify) {
-    res.status(400).json({ message: "Verification has already been passed" });
-  }
-
-  const mail = {
-    to: email,
-    subject: "Сonfirmation of registration",
-    html: `<a href="http://localhost:3000/api/users/verify/${user.verificationToken} target="_blank">Click to confirm registration</a>`,
-  };
-
-  sendEmail(mail);
-
-  res.status(200).json({ message: "Verification email sent" });
 };
 
 const login = async (req, res, next) => {
@@ -94,10 +41,6 @@ const login = async (req, res, next) => {
       return res.status(401).json({
         message: "Email or password is wrong",
       });
-    }
-
-    if (!user.verify) {
-      return res.status(403).json({ message: "Email verification failed" });
     }
 
     const { id, subscription } = user;
@@ -158,8 +101,7 @@ const updateAvatar = async (req, res, next) => {
     const avatarName = `${id}.${extention}`;
     const avatarUpload = path.join(avatarDir, avatarName);
 
-    
-    
+    // await fs.rename(tempUpload, avatarUpload);
     Jimp.read(tempUpload, (error, workfile) => {
       if (error) {
         console.log(error);
@@ -195,6 +137,4 @@ module.exports = {
   updateAvatar,
 
   getAllUsers,
-  verifyToken,
-  resendEmail,
 };
